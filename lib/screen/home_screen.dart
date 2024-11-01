@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -25,7 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     Timer.periodic(const Duration(seconds: 3), (timer) {
       int? nextPage = _pageController.page?.toInt();
-      print(nextPage);
+      log(nextPage.toString());
       if (nextPage == null) {
         return;
       }
