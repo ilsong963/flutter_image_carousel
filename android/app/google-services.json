@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1014751212216",
+    "project_id": "codefactory-db602",
+    "storage_bucket": "codefactory-db602.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1014751212216:android:b4e8339f562387a1c23a4d",
+        "android_client_info": {
+          "package_name": "com.example.image_carousel"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCZSb7cCOMqup6aIJgiTwhn-15kPFJPkOE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
