@@ -1,20 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:external_path/external_path.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:googleapis/drive/v2.dart' as googledrive;
-import 'package:googleapis_auth/auth.dart';
+import 'package:googleapis/drive/v2.dart' as googlrDrive;
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
-
-import '../auth/auth.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -124,8 +115,10 @@ class _HomeScreenState extends State<HomeScreen> {
         newImage = Image.network('https://picsum.photos/200/300', fit: BoxFit.cover);
         break;
       case ImageType.googleDrive:
+
+
         signInWithGoogle();
-        googledrive.FileList list = await getListDriveFiles(accessToken!);
+        googlrDrive.FileList list = await getListDriveFiles(accessToken!);
 
         if (!mounted) return;
 
@@ -170,91 +163,4 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-
-  Future<void> signInWithGoogle() async {
-    final GoogleSignIn googleSignIn = GoogleSignIn(
-      scopes: [
-        'https://www.googleapis.com/auth/drive',
-      ],
-    );
-
-    //이미 로그인되어 있는 경우
-    googleSignIn.isSignedIn().then((isSignedIn) {
-      return;
-    });
-
-    final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-    if (googleUser == null) {
-      // 사용자가 로그인 취소
-      return;
-    }
-    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-
-    final OAuthCredential credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken,
-    );
-
-    // Firebase 인증
-    await FirebaseAuth.instance.signInWithCredential(credential);
-
-    // Access Token 출력
-    print('Access Token: ${googleAuth.accessToken}');
-    accessToken = googleAuth.accessToken;
-  }
-
-  Future<googledrive.FileList> getListDriveFiles(String accessToken) async {
-    final credentials = AccessCredentials(
-      AccessToken('Bearer', accessToken, DateTime.now().add(const Duration(hours: 1)).toUtc()),
-      null, // Refresh token 필요 없을 경우 null
-      ['https://www.googleapis.com/auth/drive'],
-    );
-
-    final authClient = authenticatedClient(http.Client(), credentials);
-
-    // Google Drive API 객체 생성
-    final driveApi = googledrive.DriveApi(authClient);
-
-    // Google Drive 파일 목록 가져오기
-    return await driveApi.files.list();
-  }
-
-  Future<File> downLoad(googledrive.File driveFile) async {
-    final credentials = AccessCredentials(
-      AccessToken('Bearer', accessToken!, DateTime.now().add(const Duration(hours: 1)).toUtc()),
-      null, // Refresh token 필요 없을 경우 null
-      ['https://www.googleapis.com/auth/drive'],
-    );
-
-    final authClient = authenticatedClient(http.Client(), credentials);
-
-    // Google Drive API 객체 생성
-    final driveApi = googledrive.DriveApi(authClient);
-
-
-    googledrive.Media media = await driveApi.files
-        .get(driveFile.id!, downloadOptions: googledrive.DownloadOptions.fullMedia) as googledrive.Media;
-
-    List<int> data = [];
-
-    await media.stream.forEach((element) {
-      data.addAll(element);
-    });
-    String? downloadDirPath;
-
-    if (Platform.isAndroid) {
-      downloadDirPath = await ExternalPath.getExternalStoragePublicDirectory(ExternalPath.DIRECTORY_DOWNLOADS);
-      Directory dir = Directory(downloadDirPath);
-
-      if (!dir.existsSync()) {
-        downloadDirPath = (await getExternalStorageDirectory())!.path;
-      }
-    } else if (Platform.isIOS) {
-      downloadDirPath = (await getApplicationDocumentsDirectory()).path;
-    }
-    File file = File("${downloadDirPath!}/${driveFile.title!}");
-    file.writeAsBytesSync(data);
-
-    return file;
-  }
 }
